@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#ffffff" />
+  <meta name="theme-color" content="#fff7fa" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="凯格尔" />
@@ -11,167 +11,134 @@
   <link rel="apple-touch-icon" href="./icon-192.png" />
   <title>凯格尔跟练</title>
   <style>
-    :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111;background:#fff}
-    *{box-sizing:border-box} body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;padding-top:max(20px,env(safe-area-inset-top));padding-bottom:max(20px,env(safe-area-inset-bottom))}
-    main{width:min(100%,520px)} button,input{font:inherit}
-    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.muted{color:#666}
-    .settings{border:1px solid #ddd;border-radius:18px;padding:14px 16px;margin-bottom:10px}
-    .setting-row{display:flex;align-items:center;justify-content:space-between;gap:14px}.setting-row+.setting-row{margin-top:14px;padding-top:14px;border-top:1px solid #eee}
-    .duration-wrap{display:flex;align-items:center;gap:10px}.step{width:42px;height:42px;border:1px solid #ccc;border-radius:12px;background:#fff;font-size:24px;line-height:1}.duration{min-width:54px;text-align:center;font-size:24px;font-weight:700}
-    .switch{display:flex;align-items:center;gap:9px}.switch input{width:22px;height:22px}
-    .range-wrap{margin-top:12px}.range-wrap input{width:100%;accent-color:#111}.range-labels{display:flex;justify-content:space-between;font-size:12px;color:#777;margin-top:3px}
-    .phase{text-align:center;padding:20px 12px}.badge{display:inline-block;padding:8px 14px;border-radius:999px;background:#f1f1f1;font-size:18px}
-    .count{font-size:84px;font-weight:700;line-height:1.05;margin:18px 0}.instruction{font-size:22px;min-height:32px}
-    .progress{height:12px;background:#eee;border-radius:999px;overflow:hidden;margin:14px 0 18px}.bar{height:100%;width:0;background:#111;transition:width .25s}
-    .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}.card{border:1px solid #ddd;border-radius:18px;padding:14px;text-align:center}.big{font-size:26px;font-weight:700}
-    .buttons{display:grid;grid-template-columns:1fr 1fr;gap:12px}.btn{border:1px solid #ccc;border-radius:16px;padding:16px;font-size:18px;background:#fff}.primary{background:#111;color:#fff;border-color:#111}
-    .btn:disabled,.step:disabled,input:disabled{opacity:.45}.note{font-size:14px;color:#666;text-align:center;margin-top:16px;line-height:1.5}
-    @media (prefers-color-scheme:dark){:root{color:#f5f5f5;background:#111}.btn,.step{background:#1b1b1b;color:#fff;border-color:#444}.primary{background:#f5f5f5;color:#111;border-color:#f5f5f5}.card,.settings{border-color:#3a3a3a}.setting-row+.setting-row{border-color:#2d2d2d}.progress{background:#2c2c2c}.bar{background:#f5f5f5}.badge{background:#262626}.muted,.note,.range-labels{color:#aaa}.range-wrap input{accent-color:#f5f5f5}}
+    :root{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+      color:#4d3540;background:#fff7fa;
+      --pink:#d96f95;--pink-dark:#bd557c;--pink-soft:#fde7ef;--pink-pale:#fff0f5;
+      --line:#f0d7e0;--muted:#947785;--white:#fff;
+    }
+    *{box-sizing:border-box} button,input{font:inherit}
+    body{margin:0;min-height:100vh;background:linear-gradient(180deg,#fff7fa 0%,#fff 52%,#fff8fb 100%);padding:max(18px,env(safe-area-inset-top)) 18px max(24px,env(safe-area-inset-bottom));}
+    main{width:min(100%,520px);margin:0 auto}.top{display:flex;justify-content:space-between;align-items:center;margin:2px 2px 8px}.title{font-size:17px;font-weight:650}.muted{color:var(--muted)}
+    .practice{min-height:470px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:16px 8px 8px}
+    .badge{display:inline-flex;align-items:center;justify-content:center;min-width:84px;padding:9px 18px;border-radius:999px;background:var(--pink-soft);color:var(--pink-dark);font-size:19px;font-weight:650;letter-spacing:.04em}
+    .count-wrap{width:230px;height:230px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:24px auto 18px;background:radial-gradient(circle at 35% 30%,#fff 0%,#fff8fb 42%,#fde7ef 100%);box-shadow:0 12px 35px rgba(190,85,125,.10),inset 0 0 0 1px rgba(217,111,149,.12)}
+    .count{font-size:100px;font-weight:650;line-height:1;color:#5d3c49;font-variant-numeric:tabular-nums}
+    .instruction{font-size:21px;min-height:31px;color:#6a4c58}.round{font-size:14px;color:var(--muted);margin-top:7px}
+    .progress{width:100%;height:8px;background:#f6e5ec;border-radius:999px;overflow:hidden;margin:24px 0 20px}.bar{height:100%;width:0;background:linear-gradient(90deg,#e9a1ba,#d96f95);border-radius:999px;transition:width .18s linear}
+    .buttons{display:grid;grid-template-columns:1.4fr 1fr;gap:12px;width:100%}.btn{border:1px solid var(--line);border-radius:18px;padding:16px;font-size:18px;background:#fff;color:#674856;box-shadow:0 5px 16px rgba(160,90,115,.05)}.primary{background:var(--pink);color:#fff;border-color:var(--pink);font-weight:650}.primary:active{background:var(--pink-dark)}.btn:disabled,.step:disabled,input:disabled{opacity:.45}
+    .status{font-size:13px;color:var(--muted);text-align:center;min-height:20px;margin-top:9px}
+    .settings{margin-top:24px;border:1px solid var(--line);background:rgba(255,255,255,.82);border-radius:24px;padding:18px 16px;box-shadow:0 8px 24px rgba(160,90,115,.05)}
+    .settings-title{font-size:14px;color:var(--muted);margin-bottom:4px}.setting-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0}.setting-row+.setting-row{border-top:1px solid #f5e5eb}.setting-copy strong{font-size:16px}.setting-copy small{display:block;color:var(--muted);font-size:12px;margin-top:3px;line-height:1.4}
+    .duration-wrap{display:flex;align-items:center;gap:8px}.step{width:40px;height:40px;border:1px solid var(--line);border-radius:13px;background:#fff;color:var(--pink-dark);font-size:23px;line-height:1}.duration{min-width:56px;text-align:center;font-size:23px;font-weight:700;color:#5d3c49}.duration small{font-size:13px;font-weight:500;color:var(--muted)}
+    .switch{display:flex;align-items:center;gap:8px;color:#684957}.switch input{width:22px;height:22px;accent-color:var(--pink)}
+    .note{font-size:13px;color:var(--muted);text-align:center;margin:14px 8px 4px;line-height:1.55}
+    @media(max-width:380px){.practice{min-height:430px}.count-wrap{width:205px;height:205px}.count{font-size:88px}.instruction{font-size:19px}.buttons{grid-template-columns:1fr 1fr}.settings{padding:15px 13px}.setting-row{gap:8px}}
+    @media (prefers-reduced-motion:reduce){.bar{transition:none}}
   </style>
 </head>
 <body>
 <main>
-  <div class="top"><strong>凯格尔跟练</strong><span class="muted" id="roundText">第 1 / 10 轮</span></div>
+  <div class="top"><span class="title">凯格尔跟练</span><span class="muted" id="topRound">第 1 / 10 轮</span></div>
+
+  <section class="practice" aria-live="polite">
+    <span class="badge" id="phaseBadge">准备</span>
+    <div class="count-wrap"><div class="count" id="countdown">6</div></div>
+    <div class="instruction" id="instruction">点击开始</div>
+    <div class="round" id="roundText">第 1 / 10 轮</div>
+    <div class="progress" aria-label="训练进度"><div class="bar" id="bar"></div></div>
+    <div class="buttons">
+      <button class="btn primary" id="startBtn" type="button">开始</button>
+      <button class="btn" id="resetBtn" type="button">重置</button>
+    </div>
+    <div class="status" id="status"></div>
+  </section>
 
   <section class="settings" aria-label="训练设置">
+    <div class="settings-title">训练设置</div>
     <div class="setting-row">
-      <div><strong>每阶段时长</strong><div class="muted" style="font-size:13px;margin-top:2px">收缩和放松使用相同时长</div></div>
+      <div class="setting-copy"><strong>每阶段时长</strong><small>收缩和放松使用相同时长 · 3–20 秒</small></div>
       <div class="duration-wrap">
         <button class="step" id="minusBtn" type="button" aria-label="减少一秒">−</button>
-        <span class="duration"><span id="durationValue">6</span><small style="font-size:14px;font-weight:400"> 秒</small></span>
+        <span class="duration"><span id="durationValue">6</span><small> 秒</small></span>
         <button class="step" id="plusBtn" type="button" aria-label="增加一秒">+</button>
       </div>
     </div>
-    <div class="range-wrap">
-      <input id="durationRange" type="range" min="3" max="20" step="1" value="6" aria-label="每阶段时长，3到20秒" />
-      <div class="range-labels"><span>3 秒</span><span>20 秒</span></div>
-    </div>
     <div class="setting-row">
-      <div><strong>中文语音引导</strong><div class="muted" style="font-size:13px;margin-top:2px">阶段提示，并逐秒报数</div></div>
+      <div class="setting-copy"><strong>中文语音引导</strong><small>按真实秒数同步播报收缩、放松与倒计时</small></div>
       <label class="switch"><input id="voiceToggle" type="checkbox" checked /><span>开启</span></label>
     </div>
   </section>
-
-  <section class="phase" aria-live="polite">
-    <span class="badge" id="phaseBadge">准备</span>
-    <div class="count" id="countdown">6</div>
-    <div class="instruction" id="instruction">点击开始</div>
-  </section>
-  <div class="progress"><div class="bar" id="bar"></div></div>
-  <div class="stats">
-    <div class="card"><div class="muted">收缩</div><div class="big"><span id="contractStat">6</span> 秒</div></div>
-    <div class="card"><div class="muted">放松</div><div class="big"><span id="relaxStat">6</span> 秒</div></div>
-  </div>
-  <div class="buttons">
-    <button class="btn primary" id="startBtn" type="button">开始</button>
-    <button class="btn" id="resetBtn" type="button">重置</button>
-  </div>
-  <p class="note">收缩时保持正常呼吸，腹部、臀部和大腿尽量放松；放松阶段要充分放松。时长可在 3–20 秒之间调整。</p>
+  <p class="note">收缩时保持正常呼吸，腹部、臀部和大腿尽量放松；放松阶段充分放松。若训练引起疼痛或明显不适，请停止并咨询专业人士。</p>
 </main>
 <script>
-  const ROUNDS=10, MIN_SECS=3, MAX_SECS=20;
+(() => {
+  const ROUNDS=10, MIN_SECS=3, MAX_SECS=20, LEAD_MS=180;
   const $=id=>document.getElementById(id);
-  const badge=$('phaseBadge'), countdown=$('countdown'), instruction=$('instruction'), roundText=$('roundText'), bar=$('bar'), startBtn=$('startBtn'), resetBtn=$('resetBtn');
-  const durationRange=$('durationRange'), durationValue=$('durationValue'), minusBtn=$('minusBtn'), plusBtn=$('plusBtn'), contractStat=$('contractStat'), relaxStat=$('relaxStat'), voiceToggle=$('voiceToggle');
+  const badge=$('phaseBadge'), countdown=$('countdown'), instruction=$('instruction'), roundText=$('roundText'), topRound=$('topRound'), bar=$('bar'), startBtn=$('startBtn'), resetBtn=$('resetBtn'), status=$('status');
+  const durationValue=$('durationValue'), minusBtn=$('minusBtn'), plusBtn=$('plusBtn'), voiceToggle=$('voiceToggle');
 
   let duration=clamp(Number(localStorage.getItem('kegel-duration'))||6,MIN_SECS,MAX_SECS);
   let voiceEnabled=localStorage.getItem('kegel-voice')!=='off';
-  let round=1, phase='contract', sec=duration, timer=null, running=false, donePhases=0, chosenVoice=null;
+  let running=false, finished=false, segmentStartPerf=0, startSlot=0, currentSlot=0, rafId=0;
+  let audioCtx=null, audioBuffers=new Map(), sources=[], assetsReady=false, loadingPromise=null, audioStartTime=0;
 
   function clamp(n,min,max){return Math.max(min,Math.min(max,n));}
+  function totalSlots(){return ROUNDS*2*duration;}
+  function slotInfo(slot){
+    const phaseIndex=Math.floor(slot/duration), secInPhase=slot%duration;
+    const phase=phaseIndex%2===0?'contract':'relax';
+    return {phase,round:Math.floor(phaseIndex/2)+1,remaining:duration-secInPhase,phaseIndex,secInPhase};
+  }
   function vibrate(pattern){if(navigator.vibrate)navigator.vibrate(pattern);}
-
-  function pickVoice(){
-    if(!('speechSynthesis' in window)) return null;
-    const voices=speechSynthesis.getVoices();
-    const zh=voices.filter(v=>/^zh(-|_)/i.test(v.lang)||/Chinese|中文|普通话|Mandarin/i.test(v.name));
-    const preferred=['Ting-Ting','Tingting','Meijia','Sin-ji','Xiaoxiao','Xiaoyi','HsiaoChen','Yu-shu'];
-    for(const name of preferred){const v=zh.find(x=>x.name.toLowerCase().includes(name.toLowerCase()));if(v)return v;}
-    return zh[0]||null;
-  }
-  function refreshVoices(){chosenVoice=pickVoice();}
-  if('speechSynthesis' in window){refreshVoices();speechSynthesis.onvoiceschanged=refreshVoices;}
-
-  function speak(text, interrupt=false){
-    if(!voiceEnabled||!('speechSynthesis' in window)) return;
-    if(interrupt) speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);
-    u.lang='zh-CN'; u.rate=1.08; u.pitch=1.08; u.volume=1;
-    if(chosenVoice) u.voice=chosenVoice;
-    speechSynthesis.speak(u);
-  }
-  function announcePhase(){
-    const word=phase==='contract'?'收缩':'放松';
-    speak(`${word}，${sec}`,true);
-  }
-  function announceCount(){ if(sec>0) speak(String(sec),false); }
+  function setRoundText(text){roundText.textContent=text;topRound.textContent=text;}
 
   function updateSettingsUI(){
-    durationRange.value=String(duration); durationValue.textContent=duration; contractStat.textContent=duration; relaxStat.textContent=duration;
-    minusBtn.disabled=duration<=MIN_SECS||running; plusBtn.disabled=duration>=MAX_SECS||running; durationRange.disabled=running;
-    voiceToggle.checked=voiceEnabled;
+    durationValue.textContent=duration;
+    minusBtn.disabled=duration<=MIN_SECS||running;plusBtn.disabled=duration>=MAX_SECS||running;voiceToggle.checked=voiceEnabled;
   }
-  function setDuration(value){
-    if(running) return;
-    duration=clamp(Number(value),MIN_SECS,MAX_SECS); localStorage.setItem('kegel-duration',String(duration));
-    if(phase!=='done') sec=duration;
-    updateSettingsUI(); render();
+  function setDuration(value){if(running)return;duration=clamp(Number(value),MIN_SECS,MAX_SECS);localStorage.setItem('kegel-duration',String(duration));reset(false);}
+  function setVoice(value){voiceEnabled=Boolean(value);localStorage.setItem('kegel-voice',voiceEnabled?'on':'off');if(!voiceEnabled)stopSources();updateSettingsUI();}
+
+  function renderSlot(slot){
+    const i=slotInfo(Math.min(slot,totalSlots()-1));
+    setRoundText(`第 ${Math.min(i.round,ROUNDS)} / ${ROUNDS} 轮`);
+    countdown.textContent=i.remaining;
+    badge.textContent=i.phase==='contract'?'收缩':'放松';
+    instruction.textContent=i.phase==='contract'?'向内、向上提起盆底肌':'慢慢释放，完全放松';
+    bar.style.width=(Math.min(slot,totalSlots())/totalSlots()*100)+'%';
   }
-  function setVoice(value){voiceEnabled=Boolean(value);localStorage.setItem('kegel-voice',voiceEnabled?'on':'off');if(!voiceEnabled&&'speechSynthesis' in window)speechSynthesis.cancel();}
+  function renderReady(){setRoundText('第 1 / 10 轮');countdown.textContent=duration;badge.textContent='准备';instruction.textContent='点击开始';bar.style.width='0%';}
+  function renderDone(){setRoundText('10 / 10 轮');countdown.textContent='✓';badge.textContent='完成';instruction.textContent='今天的 10 轮完成';bar.style.width='100%';}
 
-  function render(){
-    roundText.textContent=`第 ${Math.min(round,ROUNDS)} / ${ROUNDS} 轮`;
-    countdown.textContent=phase==='done'?'✓':sec;
-    const total=ROUNDS*2; const partial=phase==='done'?0:(duration-sec)/duration; bar.style.width=Math.min(100,((donePhases+partial)/total)*100)+'%';
-    if(phase==='contract'){badge.textContent='收缩';instruction.textContent='向内、向上提起盆底肌';}
-    else if(phase==='relax'){badge.textContent='放松';instruction.textContent='完全放松盆底肌';}
-    else if(phase==='done'){badge.textContent='完成';instruction.textContent='10 轮完成';bar.style.width='100%';}
-    updateSettingsUI();
+  async function ensureAudio(){
+    if(!voiceEnabled)return true;if(assetsReady)return true;if(loadingPromise)return loadingPromise;
+    loadingPromise=(async()=>{try{
+      status.textContent='正在准备语音…';audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();await audioCtx.resume();
+      const jobs=[];for(let n=1;n<=MAX_SECS;n++){for(const key of [`num-${n}`,`contract-${n}`,`relax-${n}`]){jobs.push(fetch(`./audio/${key}.mp3`).then(r=>{if(!r.ok)throw new Error(key);return r.arrayBuffer();}).then(b=>audioCtx.decodeAudioData(b)).then(buf=>audioBuffers.set(key,buf)));}}
+      await Promise.all(jobs);assetsReady=true;status.textContent='';return true;
+    }catch(e){console.error(e);status.textContent='语音加载失败，将仅使用精确数字计时。';voiceEnabled=false;voiceToggle.checked=false;return false;}})();return loadingPromise;
   }
-
-  function finish(){
-    clearInterval(timer); timer=null; running=false; phase='done'; startBtn.textContent='重新开始'; vibrate([150,80,150]);
-    if('speechSynthesis' in window)speechSynthesis.cancel(); speak('训练完成',true); render();
+  function stopSources(){for(const s of sources){try{s.stop();}catch{}}sources=[];}
+  function scheduleAudio(fromSlot,perfStart){
+    if(!voiceEnabled||!assetsReady||!audioCtx)return;stopSources();const ctxNow=audioCtx.currentTime;audioStartTime=ctxNow+Math.max(0,(perfStart-performance.now())/1000);
+    for(let slot=fromSlot;slot<totalSlots();slot++){const info=slotInfo(slot),first=info.secInPhase===0,key=first?`${info.phase}-${info.remaining}`:`num-${info.remaining}`,buf=audioBuffers.get(key);if(!buf)continue;const src=audioCtx.createBufferSource();src.buffer=buf;src.connect(audioCtx.destination);src.start(audioStartTime+(slot-fromSlot));sources.push(src);}
   }
-
-  function tick(){
-    sec--;
-    if(sec<=0){
-      donePhases++;
-      if(phase==='contract'){
-        phase='relax'; sec=duration; vibrate(120); render(); announcePhase(); return;
-      }
-      if(round>=ROUNDS){finish();return;}
-      round++; phase='contract'; sec=duration; vibrate([80,60,80]); render(); announcePhase(); return;
-    }
-    render(); announceCount();
+  function frame(){
+    if(!running)return;const now=performance.now();if(now<segmentStartPerf){rafId=requestAnimationFrame(frame);return;}
+    const elapsed=Math.floor((now-segmentStartPerf)/1000),slot=startSlot+elapsed;if(slot>=totalSlots()){finish();return;}
+    if(slot!==currentSlot){const prev=slotInfo(currentSlot),next=slotInfo(slot);currentSlot=slot;renderSlot(currentSlot);if(prev.phase!==next.phase)vibrate(next.phase==='contract'?[80,60,80]:120);}rafId=requestAnimationFrame(frame);
   }
-
-  function reset(){
-    if(timer)clearInterval(timer); if('speechSynthesis' in window)speechSynthesis.cancel();
-    round=1; phase='contract'; sec=duration; timer=null; running=false; donePhases=0; startBtn.textContent='开始'; render();
+  async function startOrPause(){
+    if(finished)reset(false);if(running){running=false;cancelAnimationFrame(rafId);stopSources();startBtn.textContent='继续';instruction.textContent='已暂停';status.textContent='';updateSettingsUI();return;}
+    startBtn.disabled=true;if(voiceEnabled)await ensureAudio();startBtn.disabled=false;running=true;finished=false;startBtn.textContent='暂停';updateSettingsUI();startSlot=currentSlot;segmentStartPerf=performance.now()+LEAD_MS;renderSlot(currentSlot);status.textContent='';if(voiceEnabled&&assetsReady)scheduleAudio(startSlot,segmentStartPerf);rafId=requestAnimationFrame(frame);
   }
+  function finish(){running=false;finished=true;cancelAnimationFrame(rafId);stopSources();currentSlot=totalSlots();startBtn.textContent='重新开始';renderDone();updateSettingsUI();vibrate([150,80,150]);}
+  function reset(update=true){running=false;finished=false;cancelAnimationFrame(rafId);stopSources();currentSlot=0;startSlot=0;startBtn.textContent='开始';status.textContent='';renderReady();updateSettingsUI();}
 
-  function startOrPause(){
-    if(phase==='done')reset();
-    if(running){
-      clearInterval(timer); timer=null; running=false; startBtn.textContent='继续'; instruction.textContent='已暂停'; if('speechSynthesis' in window)speechSynthesis.cancel(); updateSettingsUI(); return;
-    }
-    running=true; startBtn.textContent='暂停'; render();
-    // Speech synthesis on iOS needs to be initiated by a user gesture. This first utterance unlocks it.
-    refreshVoices(); announcePhase();
-    timer=setInterval(tick,1000);
-  }
-
-  minusBtn.addEventListener('click',()=>setDuration(duration-1));
-  plusBtn.addEventListener('click',()=>setDuration(duration+1));
-  durationRange.addEventListener('input',e=>setDuration(e.target.value));
-  voiceToggle.addEventListener('change',e=>setVoice(e.target.checked));
-  startBtn.addEventListener('click',startOrPause);
-  resetBtn.addEventListener('click',reset);
-
-  updateSettingsUI(); render();
-  if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js');}
+  minusBtn.addEventListener('click',()=>setDuration(duration-1));plusBtn.addEventListener('click',()=>setDuration(duration+1));voiceToggle.addEventListener('change',e=>setVoice(e.target.checked));startBtn.addEventListener('click',startOrPause);resetBtn.addEventListener('click',()=>reset());
+  updateSettingsUI();renderReady();if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js');
+})();
 </script>
 </body>
 </html>
