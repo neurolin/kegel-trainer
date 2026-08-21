@@ -65,7 +65,7 @@
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-copy"><strong>中文语音引导</strong><small>按真实秒数同步播报收缩、放松与倒计时</small></div>
+      <div class="setting-copy"><strong>中文语音引导</strong><small>柔和系统女声播报收缩、放松与倒计时</small></div>
       <label class="switch"><input id="voiceToggle" type="checkbox" checked /><span>开启</span></label>
     </div>
   </section>
@@ -81,7 +81,7 @@
   let duration=clamp(Number(localStorage.getItem('kegel-duration'))||6,MIN_SECS,MAX_SECS);
   let voiceEnabled=localStorage.getItem('kegel-voice')!=='off';
   let running=false, finished=false, segmentStartPerf=0, startSlot=0, currentSlot=0, rafId=0;
-  let audioCtx=null, audioBuffers=new Map(), sources=[], assetsReady=false, loadingPromise=null, audioStartTime=0;
+  let selectedVoice=null, voicesReady=false, lastSpokenSlot=-1;
 
   function clamp(n,min,max){return Math.max(min,Math.min(max,n));}
   function totalSlots(){return ROUNDS*2*duration;}
@@ -98,7 +98,7 @@
     minusBtn.disabled=duration<=MIN_SECS||running;plusBtn.disabled=duration>=MAX_SECS||running;voiceToggle.checked=voiceEnabled;
   }
   function setDuration(value){if(running)return;duration=clamp(Number(value),MIN_SECS,MAX_SECS);localStorage.setItem('kegel-duration',String(duration));reset(false);}
-  function setVoice(value){voiceEnabled=Boolean(value);localStorage.setItem('kegel-voice',voiceEnabled?'on':'off');if(!voiceEnabled)stopSources();updateSettingsUI();}
+  function setVoice(value){voiceEnabled=Boolean(value);localStorage.setItem('kegel-voice',voiceEnabled?'on':'off');if(!voiceEnabled)stopVoice();updateSettingsUI();}
 
   function renderSlot(slot){
     const i=slotInfo(Math.min(slot,totalSlots()-1));
@@ -111,33 +111,57 @@
   function renderReady(){setRoundText('第 1 / 10 轮');countdown.textContent=duration;badge.textContent='准备';instruction.textContent='点击开始';bar.style.width='0%';}
   function renderDone(){setRoundText('10 / 10 轮');countdown.textContent='✓';badge.textContent='完成';instruction.textContent='今天的 10 轮完成';bar.style.width='100%';}
 
-  async function ensureAudio(){
-    if(!voiceEnabled)return true;if(assetsReady)return true;if(loadingPromise)return loadingPromise;
-    loadingPromise=(async()=>{try{
-      status.textContent='正在准备语音…';audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();await audioCtx.resume();
-      const jobs=[];for(let n=1;n<=MAX_SECS;n++){for(const key of [`num-${n}`,`contract-${n}`,`relax-${n}`]){jobs.push(fetch(`./audio/${key}.mp3`).then(r=>{if(!r.ok)throw new Error(key);return r.arrayBuffer();}).then(b=>audioCtx.decodeAudioData(b)).then(buf=>audioBuffers.set(key,buf)));}}
-      await Promise.all(jobs);assetsReady=true;status.textContent='';return true;
-    }catch(e){console.error(e);status.textContent='语音加载失败，将仅使用精确数字计时。';voiceEnabled=false;voiceToggle.checked=false;return false;}})();return loadingPromise;
+  function chooseSoftChineseVoice(){
+    if(!('speechSynthesis' in window))return null;
+    const voices=speechSynthesis.getVoices();
+    const zh=voices.filter(v=>/^zh([-_]|$)/i.test(v.lang)||/Chinese|Mandarin|中文|普通话/i.test(v.name));
+    const preferred=[
+      /Ting[- ]?Ting/i,/Meijia/i,/Xiaoxiao/i,/Xiaoyi/i,/HsiaoChen/i,/Sinji/i,/female/i,/女/i
+    ];
+    for(const re of preferred){const v=zh.find(x=>re.test(x.name));if(v)return v;}
+    return zh[0]||null;
   }
-  function stopSources(){for(const s of sources){try{s.stop();}catch{}}sources=[];}
-  function scheduleAudio(fromSlot,perfStart){
-    if(!voiceEnabled||!assetsReady||!audioCtx)return;stopSources();const ctxNow=audioCtx.currentTime;audioStartTime=ctxNow+Math.max(0,(perfStart-performance.now())/1000);
-    for(let slot=fromSlot;slot<totalSlots();slot++){const info=slotInfo(slot),first=info.secInPhase===0,key=first?`${info.phase}-${info.remaining}`:`num-${info.remaining}`,buf=audioBuffers.get(key);if(!buf)continue;const src=audioCtx.createBufferSource();src.buffer=buf;src.connect(audioCtx.destination);src.start(audioStartTime+(slot-fromSlot));sources.push(src);}
+  function prepareVoice(){
+    if(!voiceEnabled)return;
+    if(!('speechSynthesis' in window)){status.textContent='此设备不支持系统语音，将仅使用精确数字计时。';return;}
+    selectedVoice=chooseSoftChineseVoice();voicesReady=true;
+  }
+  function speakNow(text){
+    if(!voiceEnabled||!('speechSynthesis' in window))return;
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='zh-CN';
+    u.rate=0.88;
+    u.pitch=1.03;
+    u.volume=0.82;
+    if(selectedVoice)u.voice=selectedVoice;
+    // 每个整秒只保留当前播报，避免排队造成累计延迟
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  }
+  function stopVoice(){if('speechSynthesis' in window)speechSynthesis.cancel();lastSpokenSlot=-1;}
+  function announceSlot(slot){
+    if(!voiceEnabled||slot===lastSpokenSlot)return;
+    lastSpokenSlot=slot;
+    const info=slotInfo(slot);
+    const text=info.secInPhase===0
+      ? `${info.phase==='contract'?'收缩':'放松'}，${info.remaining}`
+      : String(info.remaining);
+    speakNow(text);
   }
   function frame(){
     if(!running)return;const now=performance.now();if(now<segmentStartPerf){rafId=requestAnimationFrame(frame);return;}
     const elapsed=Math.floor((now-segmentStartPerf)/1000),slot=startSlot+elapsed;if(slot>=totalSlots()){finish();return;}
-    if(slot!==currentSlot){const prev=slotInfo(currentSlot),next=slotInfo(slot);currentSlot=slot;renderSlot(currentSlot);if(prev.phase!==next.phase)vibrate(next.phase==='contract'?[80,60,80]:120);}rafId=requestAnimationFrame(frame);
+    if(slot!==currentSlot){const prev=slotInfo(currentSlot),next=slotInfo(slot);currentSlot=slot;renderSlot(currentSlot);announceSlot(currentSlot);if(prev.phase!==next.phase)vibrate(next.phase==='contract'?[80,60,80]:120);}rafId=requestAnimationFrame(frame);
   }
   async function startOrPause(){
-    if(finished)reset(false);if(running){running=false;cancelAnimationFrame(rafId);stopSources();startBtn.textContent='继续';instruction.textContent='已暂停';status.textContent='';updateSettingsUI();return;}
-    startBtn.disabled=true;if(voiceEnabled)await ensureAudio();startBtn.disabled=false;running=true;finished=false;startBtn.textContent='暂停';updateSettingsUI();startSlot=currentSlot;segmentStartPerf=performance.now()+LEAD_MS;renderSlot(currentSlot);status.textContent='';if(voiceEnabled&&assetsReady)scheduleAudio(startSlot,segmentStartPerf);rafId=requestAnimationFrame(frame);
+    if(finished)reset(false);if(running){running=false;cancelAnimationFrame(rafId);stopVoice();startBtn.textContent='继续';instruction.textContent='已暂停';status.textContent='';updateSettingsUI();return;}
+    startBtn.disabled=true;prepareVoice();startBtn.disabled=false;running=true;finished=false;startBtn.textContent='暂停';updateSettingsUI();startSlot=currentSlot;segmentStartPerf=performance.now()+LEAD_MS;renderSlot(currentSlot);status.textContent='';lastSpokenSlot=-1;setTimeout(()=>{if(running&&currentSlot===startSlot)announceSlot(currentSlot)},LEAD_MS);rafId=requestAnimationFrame(frame);
   }
-  function finish(){running=false;finished=true;cancelAnimationFrame(rafId);stopSources();currentSlot=totalSlots();startBtn.textContent='重新开始';renderDone();updateSettingsUI();vibrate([150,80,150]);}
-  function reset(update=true){running=false;finished=false;cancelAnimationFrame(rafId);stopSources();currentSlot=0;startSlot=0;startBtn.textContent='开始';status.textContent='';renderReady();updateSettingsUI();}
+  function finish(){running=false;finished=true;cancelAnimationFrame(rafId);stopVoice();currentSlot=totalSlots();startBtn.textContent='重新开始';renderDone();updateSettingsUI();vibrate([150,80,150]);}
+  function reset(update=true){running=false;finished=false;cancelAnimationFrame(rafId);stopVoice();currentSlot=0;startSlot=0;startBtn.textContent='开始';status.textContent='';renderReady();updateSettingsUI();}
 
   minusBtn.addEventListener('click',()=>setDuration(duration-1));plusBtn.addEventListener('click',()=>setDuration(duration+1));voiceToggle.addEventListener('change',e=>setVoice(e.target.checked));startBtn.addEventListener('click',startOrPause);resetBtn.addEventListener('click',()=>reset());
-  updateSettingsUI();renderReady();if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js');
+  updateSettingsUI();renderReady();prepareVoice();if('speechSynthesis' in window)speechSynthesis.addEventListener?.('voiceschanged',prepareVoice);if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js');
 })();
 </script>
 </body>

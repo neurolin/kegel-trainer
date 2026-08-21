@@ -1,14 +1,14 @@
-# Kegel Trainer – GitHub Pages PWA (v6 Soft Pink UI)
+# Kegel Trainer — v7 Soft Voice
 
-Mobile-first PWA with precise 1-second timing and synchronized local Chinese voice prompts.
+Mobile-first PWA for guided Kegel exercises.
 
-## What's new
-- Softer pink visual design focused on the countdown experience
-- Large central countdown area
-- Removed the duration range slider
-- Moved duration and voice settings to the bottom
-- Duration remains adjustable from 3–20 seconds with +/- buttons
-- Preserves precise `performance.now()` timing and preloaded audio scheduling
+## v7 changes
+- Replaced synthetic short MP3 clips with the phone's native Chinese speech synthesis.
+- Prefers natural Chinese female voices when available.
+- Softer speech settings (slower rate, gentle pitch and volume).
+- Visual timer remains based on `performance.now()` and therefore uses real one-second intervals.
+- Speech is re-triggered at each second boundary and the previous utterance is cancelled to prevent cumulative queue lag.
+- Duration remains adjustable from 3–20 seconds; 10 rounds; settings saved locally.
 
-## Deploy
-Upload all files and the entire `audio/` folder to the root of your GitHub Pages repository, replacing the previous version.
+## GitHub Pages
+Upload all files in this folder to the repository root and commit. No `audio/` folder is required in v7.
