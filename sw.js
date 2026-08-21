@@ -1,4 +1,4 @@
-const CACHE = 'kegel-pwa-github-v2';
+const CACHE = 'kegel-pwa-github-v3-voice';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {

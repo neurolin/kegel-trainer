@@ -12,21 +12,46 @@
   <title>凯格尔跟练</title>
   <style>
     :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111;background:#fff}
-    *{box-sizing:border-box} body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-    main{width:min(100%,520px)}
-    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.muted{color:#666}
-    .phase{text-align:center;padding:24px 12px}.badge{display:inline-block;padding:8px 14px;border-radius:999px;background:#f1f1f1;font-size:18px}
+    *{box-sizing:border-box} body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;padding-top:max(20px,env(safe-area-inset-top));padding-bottom:max(20px,env(safe-area-inset-bottom))}
+    main{width:min(100%,520px)} button,input{font:inherit}
+    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.muted{color:#666}
+    .settings{border:1px solid #ddd;border-radius:18px;padding:14px 16px;margin-bottom:10px}
+    .setting-row{display:flex;align-items:center;justify-content:space-between;gap:14px}.setting-row+.setting-row{margin-top:14px;padding-top:14px;border-top:1px solid #eee}
+    .duration-wrap{display:flex;align-items:center;gap:10px}.step{width:42px;height:42px;border:1px solid #ccc;border-radius:12px;background:#fff;font-size:24px;line-height:1}.duration{min-width:54px;text-align:center;font-size:24px;font-weight:700}
+    .switch{display:flex;align-items:center;gap:9px}.switch input{width:22px;height:22px}
+    .range-wrap{margin-top:12px}.range-wrap input{width:100%;accent-color:#111}.range-labels{display:flex;justify-content:space-between;font-size:12px;color:#777;margin-top:3px}
+    .phase{text-align:center;padding:20px 12px}.badge{display:inline-block;padding:8px 14px;border-radius:999px;background:#f1f1f1;font-size:18px}
     .count{font-size:84px;font-weight:700;line-height:1.05;margin:18px 0}.instruction{font-size:22px;min-height:32px}
-    .progress{height:12px;background:#eee;border-radius:999px;overflow:hidden;margin:18px 0}.bar{height:100%;width:0;background:#111;transition:width .25s}
-    .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}.card{border:1px solid #ddd;border-radius:18px;padding:16px;text-align:center}.big{font-size:28px;font-weight:700}
+    .progress{height:12px;background:#eee;border-radius:999px;overflow:hidden;margin:14px 0 18px}.bar{height:100%;width:0;background:#111;transition:width .25s}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}.card{border:1px solid #ddd;border-radius:18px;padding:14px;text-align:center}.big{font-size:26px;font-weight:700}
     .buttons{display:grid;grid-template-columns:1fr 1fr;gap:12px}.btn{border:1px solid #ccc;border-radius:16px;padding:16px;font-size:18px;background:#fff}.primary{background:#111;color:#fff;border-color:#111}
-    .note{font-size:14px;color:#666;text-align:center;margin-top:18px;line-height:1.5}
-    @media (prefers-color-scheme:dark){:root{color:#f5f5f5;background:#111}.btn{background:#1b1b1b;color:#fff;border-color:#444}.primary{background:#f5f5f5;color:#111;border-color:#f5f5f5}.card{border-color:#3a3a3a}.progress{background:#2c2c2c}.bar{background:#f5f5f5}.badge{background:#262626}.muted,.note{color:#aaa}}
+    .btn:disabled,.step:disabled,input:disabled{opacity:.45}.note{font-size:14px;color:#666;text-align:center;margin-top:16px;line-height:1.5}
+    @media (prefers-color-scheme:dark){:root{color:#f5f5f5;background:#111}.btn,.step{background:#1b1b1b;color:#fff;border-color:#444}.primary{background:#f5f5f5;color:#111;border-color:#f5f5f5}.card,.settings{border-color:#3a3a3a}.setting-row+.setting-row{border-color:#2d2d2d}.progress{background:#2c2c2c}.bar{background:#f5f5f5}.badge{background:#262626}.muted,.note,.range-labels{color:#aaa}.range-wrap input{accent-color:#f5f5f5}}
   </style>
 </head>
 <body>
 <main>
   <div class="top"><strong>凯格尔跟练</strong><span class="muted" id="roundText">第 1 / 10 轮</span></div>
+
+  <section class="settings" aria-label="训练设置">
+    <div class="setting-row">
+      <div><strong>每阶段时长</strong><div class="muted" style="font-size:13px;margin-top:2px">收缩和放松使用相同时长</div></div>
+      <div class="duration-wrap">
+        <button class="step" id="minusBtn" type="button" aria-label="减少一秒">−</button>
+        <span class="duration"><span id="durationValue">6</span><small style="font-size:14px;font-weight:400"> 秒</small></span>
+        <button class="step" id="plusBtn" type="button" aria-label="增加一秒">+</button>
+      </div>
+    </div>
+    <div class="range-wrap">
+      <input id="durationRange" type="range" min="3" max="20" step="1" value="6" aria-label="每阶段时长，3到20秒" />
+      <div class="range-labels"><span>3 秒</span><span>20 秒</span></div>
+    </div>
+    <div class="setting-row">
+      <div><strong>中文语音引导</strong><div class="muted" style="font-size:13px;margin-top:2px">阶段提示，并逐秒报数</div></div>
+      <label class="switch"><input id="voiceToggle" type="checkbox" checked /><span>开启</span></label>
+    </div>
+  </section>
+
   <section class="phase" aria-live="polite">
     <span class="badge" id="phaseBadge">准备</span>
     <div class="count" id="countdown">6</div>
@@ -34,43 +59,118 @@
   </section>
   <div class="progress"><div class="bar" id="bar"></div></div>
   <div class="stats">
-    <div class="card"><div class="muted">收缩</div><div class="big">6 秒</div></div>
-    <div class="card"><div class="muted">放松</div><div class="big">6 秒</div></div>
+    <div class="card"><div class="muted">收缩</div><div class="big"><span id="contractStat">6</span> 秒</div></div>
+    <div class="card"><div class="muted">放松</div><div class="big"><span id="relaxStat">6</span> 秒</div></div>
   </div>
   <div class="buttons">
-    <button class="btn primary" id="startBtn">开始</button>
-    <button class="btn" id="resetBtn">重置</button>
+    <button class="btn primary" id="startBtn" type="button">开始</button>
+    <button class="btn" id="resetBtn" type="button">重置</button>
   </div>
-  <p class="note">收缩时保持正常呼吸，腹部、臀部和大腿尽量放松；放松阶段要完全放松。</p>
+  <p class="note">收缩时保持正常呼吸，腹部、臀部和大腿尽量放松；放松阶段要充分放松。时长可在 3–20 秒之间调整。</p>
 </main>
 <script>
-  const SECS=6, ROUNDS=10;
-  let round=1, phase='contract', sec=SECS, timer=null, running=false, donePhases=0;
+  const ROUNDS=10, MIN_SECS=3, MAX_SECS=20;
   const $=id=>document.getElementById(id);
   const badge=$('phaseBadge'), countdown=$('countdown'), instruction=$('instruction'), roundText=$('roundText'), bar=$('bar'), startBtn=$('startBtn'), resetBtn=$('resetBtn');
-  function vibrate(pattern){ if(navigator.vibrate) navigator.vibrate(pattern); }
+  const durationRange=$('durationRange'), durationValue=$('durationValue'), minusBtn=$('minusBtn'), plusBtn=$('plusBtn'), contractStat=$('contractStat'), relaxStat=$('relaxStat'), voiceToggle=$('voiceToggle');
+
+  let duration=clamp(Number(localStorage.getItem('kegel-duration'))||6,MIN_SECS,MAX_SECS);
+  let voiceEnabled=localStorage.getItem('kegel-voice')!=='off';
+  let round=1, phase='contract', sec=duration, timer=null, running=false, donePhases=0, chosenVoice=null;
+
+  function clamp(n,min,max){return Math.max(min,Math.min(max,n));}
+  function vibrate(pattern){if(navigator.vibrate)navigator.vibrate(pattern);}
+
+  function pickVoice(){
+    if(!('speechSynthesis' in window)) return null;
+    const voices=speechSynthesis.getVoices();
+    const zh=voices.filter(v=>/^zh(-|_)/i.test(v.lang)||/Chinese|中文|普通话|Mandarin/i.test(v.name));
+    const preferred=['Ting-Ting','Tingting','Meijia','Sin-ji','Xiaoxiao','Xiaoyi','HsiaoChen','Yu-shu'];
+    for(const name of preferred){const v=zh.find(x=>x.name.toLowerCase().includes(name.toLowerCase()));if(v)return v;}
+    return zh[0]||null;
+  }
+  function refreshVoices(){chosenVoice=pickVoice();}
+  if('speechSynthesis' in window){refreshVoices();speechSynthesis.onvoiceschanged=refreshVoices;}
+
+  function speak(text, interrupt=false){
+    if(!voiceEnabled||!('speechSynthesis' in window)) return;
+    if(interrupt) speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='zh-CN'; u.rate=1.08; u.pitch=1.08; u.volume=1;
+    if(chosenVoice) u.voice=chosenVoice;
+    speechSynthesis.speak(u);
+  }
+  function announcePhase(){
+    const word=phase==='contract'?'收缩':'放松';
+    speak(`${word}，${sec}`,true);
+  }
+  function announceCount(){ if(sec>0) speak(String(sec),false); }
+
+  function updateSettingsUI(){
+    durationRange.value=String(duration); durationValue.textContent=duration; contractStat.textContent=duration; relaxStat.textContent=duration;
+    minusBtn.disabled=duration<=MIN_SECS||running; plusBtn.disabled=duration>=MAX_SECS||running; durationRange.disabled=running;
+    voiceToggle.checked=voiceEnabled;
+  }
+  function setDuration(value){
+    if(running) return;
+    duration=clamp(Number(value),MIN_SECS,MAX_SECS); localStorage.setItem('kegel-duration',String(duration));
+    if(phase!=='done') sec=duration;
+    updateSettingsUI(); render();
+  }
+  function setVoice(value){voiceEnabled=Boolean(value);localStorage.setItem('kegel-voice',voiceEnabled?'on':'off');if(!voiceEnabled&&'speechSynthesis' in window)speechSynthesis.cancel();}
+
   function render(){
     roundText.textContent=`第 ${Math.min(round,ROUNDS)} / ${ROUNDS} 轮`;
     countdown.textContent=phase==='done'?'✓':sec;
-    const total=ROUNDS*2; const partial=phase==='done'?0:(SECS-sec)/SECS; bar.style.width=Math.min(100,((donePhases+partial)/total)*100)+'%';
+    const total=ROUNDS*2; const partial=phase==='done'?0:(duration-sec)/duration; bar.style.width=Math.min(100,((donePhases+partial)/total)*100)+'%';
     if(phase==='contract'){badge.textContent='收缩';instruction.textContent='向内、向上提起盆底肌';}
     else if(phase==='relax'){badge.textContent='放松';instruction.textContent='完全放松盆底肌';}
     else if(phase==='done'){badge.textContent='完成';instruction.textContent='10 轮完成';bar.style.width='100%';}
+    updateSettingsUI();
   }
+
+  function finish(){
+    clearInterval(timer); timer=null; running=false; phase='done'; startBtn.textContent='重新开始'; vibrate([150,80,150]);
+    if('speechSynthesis' in window)speechSynthesis.cancel(); speak('训练完成',true); render();
+  }
+
   function tick(){
     sec--;
     if(sec<=0){
       donePhases++;
-      if(phase==='contract'){phase='relax';sec=SECS;vibrate(120);}
-      else if(round>=ROUNDS){clearInterval(timer);timer=null;running=false;phase='done';startBtn.textContent='重新开始';vibrate([150,80,150]);render();return;}
-      else{round++;phase='contract';sec=SECS;vibrate([80,60,80]);}
+      if(phase==='contract'){
+        phase='relax'; sec=duration; vibrate(120); render(); announcePhase(); return;
+      }
+      if(round>=ROUNDS){finish();return;}
+      round++; phase='contract'; sec=duration; vibrate([80,60,80]); render(); announcePhase(); return;
     }
-    render();
+    render(); announceCount();
   }
-  function reset(){if(timer)clearInterval(timer);round=1;phase='contract';sec=SECS;timer=null;running=false;donePhases=0;startBtn.textContent='开始';render();}
-  startBtn.addEventListener('click',()=>{if(phase==='done')reset(); if(running){clearInterval(timer);timer=null;running=false;startBtn.textContent='继续';instruction.textContent='已暂停';return;} running=true;startBtn.textContent='暂停';render();timer=setInterval(tick,1000);});
+
+  function reset(){
+    if(timer)clearInterval(timer); if('speechSynthesis' in window)speechSynthesis.cancel();
+    round=1; phase='contract'; sec=duration; timer=null; running=false; donePhases=0; startBtn.textContent='开始'; render();
+  }
+
+  function startOrPause(){
+    if(phase==='done')reset();
+    if(running){
+      clearInterval(timer); timer=null; running=false; startBtn.textContent='继续'; instruction.textContent='已暂停'; if('speechSynthesis' in window)speechSynthesis.cancel(); updateSettingsUI(); return;
+    }
+    running=true; startBtn.textContent='暂停'; render();
+    // Speech synthesis on iOS needs to be initiated by a user gesture. This first utterance unlocks it.
+    refreshVoices(); announcePhase();
+    timer=setInterval(tick,1000);
+  }
+
+  minusBtn.addEventListener('click',()=>setDuration(duration-1));
+  plusBtn.addEventListener('click',()=>setDuration(duration+1));
+  durationRange.addEventListener('input',e=>setDuration(e.target.value));
+  voiceToggle.addEventListener('change',e=>setVoice(e.target.checked));
+  startBtn.addEventListener('click',startOrPause);
   resetBtn.addEventListener('click',reset);
-  render();
+
+  updateSettingsUI(); render();
   if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js');}
 </script>
 </body>

@@ -2,7 +2,7 @@
   "id": "./",
   "name": "凯格尔跟练",
   "short_name": "凯格尔",
-  "description": "6秒收缩、6秒放松，共10轮的盆底肌跟练计时器。",
+  "description": "可调节3至20秒、带中文语音逐秒引导的盆底肌凯格尔跟练计时器。",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

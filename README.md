@@ -1,39 +1,36 @@
-# 凯格尔跟练 — GitHub Pages 专用版
+# 凯格尔跟练 — GitHub Pages PWA
 
-当前训练：**收缩 6 秒 → 放松 6 秒 × 10 轮**。
+一个手机优先、可离线使用的凯格尔/盆底肌跟练计时器。
 
-## 部署到 GitHub Pages
+## 功能
 
-1. 在 GitHub 新建一个仓库，例如 `kegel-trainer`。
-2. 将本 ZIP **解压后**，把里面所有文件直接上传到仓库根目录。不要把 ZIP 本身上传后就结束。
-3. 仓库结构应类似：
+- 10 轮训练：收缩 → 放松
+- 每阶段时长可在 **3–20 秒**之间调整
+- 默认 6 秒，并会记住上次设置
+- 中文语音提示“收缩 / 放松”并逐秒报数
+- 语音可随时关闭
+- 暂停、继续、重置、进度显示
+- 手机支持时提供震动提示
+- PWA，可安装到 iPhone / Android 主屏幕并离线使用
 
-   ```text
-   kegel-trainer/
-   ├── index.html
-   ├── manifest.webmanifest
-   ├── sw.js
-   ├── icon-192.png
-   ├── icon-512.png
-   ├── .nojekyll
-   └── README.md
-   ```
+> 语音使用手机/浏览器自带的中文语音合成功能。应用会优先选择常见中文女声；不同手机系统提供的声音名称不同，因此最终音色由设备决定。
 
-4. 打开仓库 `Settings` → `Pages`。
-5. `Source` 选择 `Deploy from a branch`。
-6. Branch 选择 `main`，Folder 选择 `/ (root)`，然后保存。
-7. 发布后地址通常是：
+## 更新已有 GitHub Pages
 
-   `https://你的GitHub用户名.github.io/kegel-trainer/`
+如果仓库已经部署过旧版本：
 
-本版本使用相对路径，因此适配 GitHub Pages 的仓库子目录地址，不要求仓库名固定为 `kegel-trainer`。
+1. 解压 ZIP。
+2. 用 ZIP 中的新文件覆盖仓库根目录的旧文件，尤其是 `index.html`、`manifest.webmanifest`、`sw.js`。
+3. Commit changes。
+4. GitHub Pages 会自动重新部署。
+5. 手机上若仍显示旧版，可完全关闭 PWA 后重新打开；必要时在 Safari/Chrome 访问一次网页地址刷新缓存。
 
-## 安装到手机
+## 首次部署
 
-### iPhone
-Safari 打开 GitHub Pages 地址 → 分享 → **添加到主屏幕**。
+1. 在 GitHub 新建仓库，例如 `kegel-trainer`。
+2. 将本 ZIP 解压后，把里面所有文件直接上传到仓库根目录。
+3. `Settings` → `Pages` → `Deploy from a branch`。
+4. Branch 选择 `main`，Folder 选择 `/ (root)`。
+5. 地址通常为：`https://你的GitHub用户名.github.io/kegel-trainer/`
 
-### Android
-Chrome 打开 GitHub Pages 地址 → 菜单 → **安装应用** 或 **添加到主屏幕**。
-
-首次在线打开并加载完成后，应用资源会缓存，可在离线状态下继续使用。
+本项目使用相对路径，适配 GitHub Pages 仓库子目录。
