@@ -12,3 +12,10 @@ Mobile-first PWA for guided Kegel exercises.
 
 ## GitHub Pages
 Upload all files in this folder to the repository root and commit. No `audio/` folder is required in v7.
+
+
+## v8 Tulip icon
+- Replaced app icons with the hand-drawn pink tulip design.
+- icon-192.png: 192x192
+- icon-512.png: 512x512
+- Service worker cache version updated so the new icon refreshes more reliably.
