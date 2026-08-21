@@ -1,4 +1,4 @@
-const CACHE='kegel-v8-tulip-icon';
+const CACHE='kegel-v9-voicefix';
 const CORE=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 const AUDIO=[];
 for(let n=1;n<=20;n++){

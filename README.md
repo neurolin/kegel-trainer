@@ -19,3 +19,9 @@ Upload all files in this folder to the repository root and commit. No `audio/` f
 - icon-192.png: 192x192
 - icon-512.png: 512x512
 - Service worker cache version updated so the new icon refreshes more reliably.
+
+
+## v9 voice scheduling fix
+- Keeps the visual timer on a real 1-second clock.
+- Does not cancel a number once speaking has started, preventing clipped syllables such as ‘8’.
+- Does not queue missed/expired numbers, preventing cumulative voice lag.
