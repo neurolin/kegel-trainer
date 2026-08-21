@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="凯格尔" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <title>凯格尔跟练</title>
+  <style>
+    :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111;background:#fff}
+    *{box-sizing:border-box} body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+    main{width:min(100%,520px)}
+    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.muted{color:#666}
+    .phase{text-align:center;padding:24px 12px}.badge{display:inline-block;padding:8px 14px;border-radius:999px;background:#f1f1f1;font-size:18px}
+    .count{font-size:84px;font-weight:700;line-height:1.05;margin:18px 0}.instruction{font-size:22px;min-height:32px}
+    .progress{height:12px;background:#eee;border-radius:999px;overflow:hidden;margin:18px 0}.bar{height:100%;width:0;background:#111;transition:width .25s}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}.card{border:1px solid #ddd;border-radius:18px;padding:16px;text-align:center}.big{font-size:28px;font-weight:700}
+    .buttons{display:grid;grid-template-columns:1fr 1fr;gap:12px}.btn{border:1px solid #ccc;border-radius:16px;padding:16px;font-size:18px;background:#fff}.primary{background:#111;color:#fff;border-color:#111}
+    .note{font-size:14px;color:#666;text-align:center;margin-top:18px;line-height:1.5}
+    @media (prefers-color-scheme:dark){:root{color:#f5f5f5;background:#111}.btn{background:#1b1b1b;color:#fff;border-color:#444}.primary{background:#f5f5f5;color:#111;border-color:#f5f5f5}.card{border-color:#3a3a3a}.progress{background:#2c2c2c}.bar{background:#f5f5f5}.badge{background:#262626}.muted,.note{color:#aaa}}
+  </style>
+</head>
+<body>
+<main>
+  <div class="top"><strong>凯格尔跟练</strong><span class="muted" id="roundText">第 1 / 10 轮</span></div>
+  <section class="phase" aria-live="polite">
+    <span class="badge" id="phaseBadge">准备</span>
+    <div class="count" id="countdown">6</div>
+    <div class="instruction" id="instruction">点击开始</div>
+  </section>
+  <div class="progress"><div class="bar" id="bar"></div></div>
+  <div class="stats">
+    <div class="card"><div class="muted">收缩</div><div class="big">6 秒</div></div>
+    <div class="card"><div class="muted">放松</div><div class="big">6 秒</div></div>
+  </div>
+  <div class="buttons">
+    <button class="btn primary" id="startBtn">开始</button>
+    <button class="btn" id="resetBtn">重置</button>
+  </div>
+  <p class="note">收缩时保持正常呼吸，腹部、臀部和大腿尽量放松；放松阶段要完全放松。</p>
+</main>
+<script>
+  const SECS=6, ROUNDS=10;
+  let round=1, phase='contract', sec=SECS, timer=null, running=false, donePhases=0;
+  const $=id=>document.getElementById(id);
+  const badge=$('phaseBadge'), countdown=$('countdown'), instruction=$('instruction'), roundText=$('roundText'), bar=$('bar'), startBtn=$('startBtn'), resetBtn=$('resetBtn');
+  function vibrate(pattern){ if(navigator.vibrate) navigator.vibrate(pattern); }
+  function render(){
+    roundText.textContent=`第 ${Math.min(round,ROUNDS)} / ${ROUNDS} 轮`;
+    countdown.textContent=phase==='done'?'✓':sec;
+    const total=ROUNDS*2; const partial=phase==='done'?0:(SECS-sec)/SECS; bar.style.width=Math.min(100,((donePhases+partial)/total)*100)+'%';
+    if(phase==='contract'){badge.textContent='收缩';instruction.textContent='向内、向上提起盆底肌';}
+    else if(phase==='relax'){badge.textContent='放松';instruction.textContent='完全放松盆底肌';}
+    else if(phase==='done'){badge.textContent='完成';instruction.textContent='10 轮完成';bar.style.width='100%';}
+  }
+  function tick(){
+    sec--;
+    if(sec<=0){
+      donePhases++;
+      if(phase==='contract'){phase='relax';sec=SECS;vibrate(120);}
+      else if(round>=ROUNDS){clearInterval(timer);timer=null;running=false;phase='done';startBtn.textContent='重新开始';vibrate([150,80,150]);render();return;}
+      else{round++;phase='contract';sec=SECS;vibrate([80,60,80]);}
+    }
+    render();
+  }
+  function reset(){if(timer)clearInterval(timer);round=1;phase='contract';sec=SECS;timer=null;running=false;donePhases=0;startBtn.textContent='开始';render();}
+  startBtn.addEventListener('click',()=>{if(phase==='done')reset(); if(running){clearInterval(timer);timer=null;running=false;startBtn.textContent='继续';instruction.textContent='已暂停';return;} running=true;startBtn.textContent='暂停';render();timer=setInterval(tick,1000);});
+  resetBtn.addEventListener('click',reset);
+  render();
+  if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js');}
+</script>
+</body>
+</html>
