@@ -4,7 +4,6 @@
 
 *A gentle, voice-guided pelvic floor exercise companion.*
 
-`<br>`{=html}
 
 [![开始练习](https://img.shields.io/badge/🌷_开始练习-打开网页版-ff8fb1?style=for-the-badge)](https://neurolin.github.io/kegel-trainer/)
  
@@ -43,7 +42,6 @@
 
 ------------------------------------------------------------------------
 
-::: {align="center"}
 ## 🌷 现在开始
 
 ### [👉 打开「郁见」盆底训练](https://neurolin.github.io/kegel-trainer/)
@@ -136,7 +134,6 @@ distraction-free design.
 
 ------------------------------------------------------------------------
 
-::: {align="center"}
 ### 🌷 今天又完成一次，就很好。
 
 Made for gentler, more consistent practice.
