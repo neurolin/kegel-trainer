@@ -1,15 +1,10 @@
-# Kegel Trainer — v11 Cue Then Countdown
+# Kegel Trainer v12 — Natural Recorded Voice
 
-本版本沿用 v10 的连续媒体音轨方案，以提高手机锁屏后继续播放的可靠性。
+- Uses the uploaded natural Mandarin recording.
+- Each “收缩/放松” prompt has its own 1-second cue slot.
+- The full countdown begins only after that cue slot.
+- Number onsets are exactly 1.000 second apart.
+- 3–20 second settings, 10 rounds.
+- Uses continuous MP3 tracks to retain the v10/v11 lock-screen playback approach.
 
-- 3–20 秒每阶段可调
-- 10 轮收缩 / 放松
-- 每个阶段先完整播放“收缩”或“放松”提示
-- 提示语结束后，再从设定秒数开始完整倒计时（例如 10、9、8…1）
-- 提示语有独立的 1 秒提示拍，不占用动作训练时长
-- 前台数字显示直接跟随音频 currentTime
-- 锁屏后由系统媒体播放机制接管，不依赖后台 JavaScript 定时器
-- 保留手绘粉色郁金香 PWA 图标
-- Service Worker 已升级缓存版本
-
-> iOS 对 PWA 后台能力仍由系统控制。连续 `<audio>` 是比 JavaScript/TTS 更可靠的锁屏方案，但低电量模式、强制停止网页或系统资源回收仍可能中断播放。
+Upload the whole package, including `audio/`, to GitHub Pages.
