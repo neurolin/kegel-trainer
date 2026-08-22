@@ -65,6 +65,14 @@
       </div>
     </div>
     <div class="setting-row">
+      <div class="setting-copy"><strong>训练轮数</strong><small>每次练习可选择 8–12 轮</small></div>
+      <div class="duration-wrap">
+        <button class="step" id="roundMinus" type="button" aria-label="减少一轮">−</button>
+        <span class="duration"><span id="roundValue">10</span><small> 轮</small></span>
+        <button class="step" id="roundPlus" type="button" aria-label="增加一轮">+</button>
+      </div>
+    </div>
+    <div class="setting-row">
       <div class="setting-copy"><strong>中文语音引导</strong><small>连续音轨播报收缩、放松与倒计时 · 支持锁屏播放</small></div>
       <label class="switch"><input id="voiceToggle" type="checkbox" checked /><span>开启</span></label>
     </div>
@@ -74,26 +82,30 @@
 <audio id="trainingAudio" preload="auto" playsinline></audio>
 <script>
 (() => {
-  const ROUNDS=10, MIN_SECS=3, MAX_SECS=20;
+  const MIN_ROUNDS=8, MAX_ROUNDS=12, MIN_SECS=3, MAX_SECS=20;
   const $=id=>document.getElementById(id);
   const badge=$('phaseBadge'), countdown=$('countdown'), instruction=$('instruction'), roundText=$('roundText'), topRound=$('topRound'), bar=$('bar'), startBtn=$('startBtn'), resetBtn=$('resetBtn'), status=$('status');
-  const durationValue=$('durationValue'), minusBtn=$('minusBtn'), plusBtn=$('plusBtn'), voiceToggle=$('voiceToggle'), audio=$('trainingAudio');
+  const durationValue=$('durationValue'), minusBtn=$('minusBtn'), plusBtn=$('plusBtn'), roundValue=$('roundValue'), roundMinus=$('roundMinus'), roundPlus=$('roundPlus'), voiceToggle=$('voiceToggle'), audio=$('trainingAudio');
 
   let duration=clamp(Number(localStorage.getItem('kegel-duration'))||6,MIN_SECS,MAX_SECS);
+  let rounds=clamp(Number(localStorage.getItem('kegel-rounds'))||10,MIN_ROUNDS,MAX_ROUNDS);
   let voiceEnabled=localStorage.getItem('kegel-voice')!=='off';
   let running=false, finished=false, rafId=0, lastPhase='';
 
   function clamp(n,min,max){return Math.max(min,Math.min(max,n));}
   function stageSeconds(){return duration+1;}
-  function totalSeconds(){return ROUNDS*2*stageSeconds();}
-  function sourceForDuration(){return `./audio/training-${duration}.mp3`;}
+  function trainingSeconds(){return rounds*2*stageSeconds();}
+  function sourceForDuration(){return `./audio/training-${duration}-${rounds}.mp3`;}
   function setRoundText(text){roundText.textContent=text;topRound.textContent=text;}
   function vibrate(pattern){if(navigator.vibrate)navigator.vibrate(pattern);}
 
   function updateSettingsUI(){
     durationValue.textContent=duration;
+    roundValue.textContent=rounds;
     minusBtn.disabled=duration<=MIN_SECS||running;
     plusBtn.disabled=duration>=MAX_SECS||running;
+    roundMinus.disabled=rounds<=MIN_ROUNDS||running;
+    roundPlus.disabled=rounds>=MAX_ROUNDS||running;
     voiceToggle.checked=voiceEnabled;
   }
   function configureAudio(force=false){
@@ -108,6 +120,12 @@
     localStorage.setItem('kegel-duration',String(duration));
     configureAudio(true);reset(false);
   }
+  function setRounds(value){
+    if(running)return;
+    rounds=clamp(Number(value),MIN_ROUNDS,MAX_ROUNDS);
+    localStorage.setItem('kegel-rounds',String(rounds));
+    configureAudio(true);reset(false);
+  }
   function setVoice(value){
     voiceEnabled=Boolean(value);
     localStorage.setItem('kegel-voice',voiceEnabled?'on':'off');
@@ -116,7 +134,7 @@
   }
 
   function infoAtTime(t){
-    const slot=Math.min(Math.floor(Math.max(0,t)),totalSeconds()-1);
+    const slot=Math.min(Math.floor(Math.max(0,t)),trainingSeconds()-1);
     const stageLen=stageSeconds();
     const phaseIndex=Math.floor(slot/stageLen), secInStage=slot%stageLen;
     const phase=phaseIndex%2===0?'contract':'relax';
@@ -125,19 +143,19 @@
     return {slot, phase, round:Math.floor(phaseIndex/2)+1, remaining, phaseIndex, secInStage, cue};
   }
   function renderFromAudio(){
-    const t=Math.min(audio.currentTime,totalSeconds());
-    if(t>=totalSeconds()-0.02 && audio.ended){finish();return;}
+    const t=Math.min(audio.currentTime,trainingSeconds());
+    if(audio.ended){finish();return;}
     const i=infoAtTime(t);
-    setRoundText(`第 ${Math.min(i.round,ROUNDS)} / ${ROUNDS} 轮`);
+    setRoundText(`第 ${Math.min(i.round,rounds)} / ${rounds} 轮`);
     countdown.textContent=i.cue?'—':i.remaining;
     badge.textContent=i.phase==='contract'?'收缩':'放松';
     instruction.textContent=i.cue?(i.phase==='contract'?'听到提示后开始收缩':'听到提示后完全放松'):(i.phase==='contract'?'保持收缩，正常呼吸':'保持放松，正常呼吸');
-    bar.style.width=(Math.min(t,totalSeconds())/totalSeconds()*100)+'%';
+    bar.style.width=(Math.min(t,trainingSeconds())/trainingSeconds()*100)+'%';
     if(lastPhase && lastPhase!==i.phase)vibrate(i.phase==='contract'?[80,60,80]:120);
     lastPhase=i.phase;
   }
-  function renderReady(){setRoundText('第 1 / 10 轮');countdown.textContent=duration;badge.textContent='准备';instruction.textContent='点击开始';bar.style.width='0%';lastPhase='';}
-  function renderDone(){setRoundText('10 / 10 轮');countdown.textContent='✓';badge.textContent='完成';instruction.textContent='今天的 10 轮完成';bar.style.width='100%';}
+  function renderReady(){setRoundText(`第 1 / ${rounds} 轮`);countdown.textContent=duration;badge.textContent='准备';instruction.textContent='点击开始';bar.style.width='0%';lastPhase='';}
+  function renderDone(){setRoundText(`${rounds} / ${rounds} 轮`);countdown.textContent='✓';badge.textContent='完成';instruction.textContent=`今天的 ${rounds} 轮完成`;bar.style.width='100%';}
   function frame(){if(!running)return;renderFromAudio();rafId=requestAnimationFrame(frame);}
 
   async function startOrPause(){
@@ -163,7 +181,7 @@
 
   audio.addEventListener('ended',finish);
   audio.addEventListener('play',()=>{if(!running){running=true;startBtn.textContent='暂停';updateSettingsUI();rafId=requestAnimationFrame(frame);}});
-  audio.addEventListener('pause',()=>{if(!finished && audio.currentTime>0 && audio.currentTime<totalSeconds()){running=false;cancelAnimationFrame(rafId);startBtn.textContent='继续';updateSettingsUI();}});
+  audio.addEventListener('pause',()=>{if(!finished && audio.currentTime>0 && audio.currentTime<audio.duration){running=false;cancelAnimationFrame(rafId);startBtn.textContent='继续';updateSettingsUI();}});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderFromAudio();});
 
   if('mediaSession' in navigator){
@@ -176,6 +194,8 @@
 
   minusBtn.addEventListener('click',()=>setDuration(duration-1));
   plusBtn.addEventListener('click',()=>setDuration(duration+1));
+  roundMinus.addEventListener('click',()=>setRounds(rounds-1));
+  roundPlus.addEventListener('click',()=>setRounds(rounds+1));
   voiceToggle.addEventListener('change',e=>setVoice(e.target.checked));
   startBtn.addEventListener('click',startOrPause);
   resetBtn.addEventListener('click',()=>reset());
@@ -186,24 +206,3 @@
 </script>
 </body>
 </html>
-    const completionAudio = new Audio('./audio/completion.mp3');
-    completionAudio.preload = 'auto';
-
-    function renderRounds() {
-      roundValue.textContent = `${totalRounds} 轮`;
-      roundMinus.disabled = running || totalRounds <= 8;
-      roundPlus.disabled = running || totalRounds >= 12;
-    }
-    roundMinus.addEventListener('click', () => {
-      if (running || totalRounds <= 8) return;
-      totalRounds--; localStorage.setItem('kegelRounds', totalRounds);
-      renderRounds(); reset();
-    });
-    roundPlus.addEventListener('click', () => {
-      if (running || totalRounds >= 12) return;
-      totalRounds++; localStorage.setItem('kegelRounds', totalRounds);
-      renderRounds(); reset();
-    });
-
-    renderRounds();
-    
