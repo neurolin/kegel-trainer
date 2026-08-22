@@ -1,9 +1,6 @@
-::: {align="center"}
-`<img src="./icon-192.png" width="112" alt="郁见 Pelvic Floor Trainer icon">`{=html}
+ Pelvic Floor Trainer
 
-# 🌷 郁见 · Pelvic Floor Trainer
-
-### 不用盯着屏幕，跟着声音，完成今天的盆底肌练习。
+不用盯着屏幕，跟着声音，完成今天的盆底肌练习。
 
 *A gentle, voice-guided pelvic floor exercise companion.*
 
