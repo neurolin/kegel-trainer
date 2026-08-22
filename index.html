@@ -186,3 +186,24 @@
 </script>
 </body>
 </html>
+    const completionAudio = new Audio('./audio/completion.mp3');
+    completionAudio.preload = 'auto';
+
+    function renderRounds() {
+      roundValue.textContent = `${totalRounds} 轮`;
+      roundMinus.disabled = running || totalRounds <= 8;
+      roundPlus.disabled = running || totalRounds >= 12;
+    }
+    roundMinus.addEventListener('click', () => {
+      if (running || totalRounds <= 8) return;
+      totalRounds--; localStorage.setItem('kegelRounds', totalRounds);
+      renderRounds(); reset();
+    });
+    roundPlus.addEventListener('click', () => {
+      if (running || totalRounds >= 12) return;
+      totalRounds++; localStorage.setItem('kegelRounds', totalRounds);
+      renderRounds(); reset();
+    });
+
+    renderRounds();
+    
