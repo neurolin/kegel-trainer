@@ -1,27 +1,15 @@
-# Kegel Trainer — v7 Soft Voice
+# Kegel Trainer — v11 Cue Then Countdown
 
-Mobile-first PWA for guided Kegel exercises.
+本版本沿用 v10 的连续媒体音轨方案，以提高手机锁屏后继续播放的可靠性。
 
-## v7 changes
-- Replaced synthetic short MP3 clips with the phone's native Chinese speech synthesis.
-- Prefers natural Chinese female voices when available.
-- Softer speech settings (slower rate, gentle pitch and volume).
-- Visual timer remains based on `performance.now()` and therefore uses real one-second intervals.
-- Speech is re-triggered at each second boundary and the previous utterance is cancelled to prevent cumulative queue lag.
-- Duration remains adjustable from 3–20 seconds; 10 rounds; settings saved locally.
+- 3–20 秒每阶段可调
+- 10 轮收缩 / 放松
+- 每个阶段先完整播放“收缩”或“放松”提示
+- 提示语结束后，再从设定秒数开始完整倒计时（例如 10、9、8…1）
+- 提示语有独立的 1 秒提示拍，不占用动作训练时长
+- 前台数字显示直接跟随音频 currentTime
+- 锁屏后由系统媒体播放机制接管，不依赖后台 JavaScript 定时器
+- 保留手绘粉色郁金香 PWA 图标
+- Service Worker 已升级缓存版本
 
-## GitHub Pages
-Upload all files in this folder to the repository root and commit. No `audio/` folder is required in v7.
-
-
-## v8 Tulip icon
-- Replaced app icons with the hand-drawn pink tulip design.
-- icon-192.png: 192x192
-- icon-512.png: 512x512
-- Service worker cache version updated so the new icon refreshes more reliably.
-
-
-## v9 voice scheduling fix
-- Keeps the visual timer on a real 1-second clock.
-- Does not cancel a number once speaking has started, preventing clipped syllables such as ‘8’.
-- Does not queue missed/expired numbers, preventing cumulative voice lag.
+> iOS 对 PWA 后台能力仍由系统控制。连续 `<audio>` 是比 JavaScript/TTS 更可靠的锁屏方案，但低电量模式、强制停止网页或系统资源回收仍可能中断播放。

@@ -2,7 +2,7 @@
   "id": "./",
   "name": "凯格尔跟练",
   "short_name": "凯格尔",
-  "description": "可调节3至20秒、带中文语音逐秒引导的盆底肌凯格尔跟练计时器。",
+  "description": "可调节3至20秒、使用连续音轨并支持锁屏持续播放的盆底肌凯格尔跟练器。",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -10,7 +10,17 @@
   "background_color": "#fff7fa",
   "theme_color": "#fff7fa",
   "icons": [
-    {"src":"./icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
-    {"src":"./icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }

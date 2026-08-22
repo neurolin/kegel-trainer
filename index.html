@@ -65,113 +65,123 @@
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-copy"><strong>中文语音引导</strong><small>柔和系统女声播报收缩、放松与倒计时</small></div>
+      <div class="setting-copy"><strong>中文语音引导</strong><small>连续音轨播报收缩、放松与倒计时 · 支持锁屏播放</small></div>
       <label class="switch"><input id="voiceToggle" type="checkbox" checked /><span>开启</span></label>
     </div>
   </section>
   <p class="note">收缩时保持正常呼吸，腹部、臀部和大腿尽量放松；放松阶段充分放松。若训练引起疼痛或明显不适，请停止并咨询专业人士。</p>
 </main>
+<audio id="trainingAudio" preload="auto" playsinline></audio>
 <script>
 (() => {
-  const ROUNDS=10, MIN_SECS=3, MAX_SECS=20, LEAD_MS=180;
+  const ROUNDS=10, MIN_SECS=3, MAX_SECS=20;
   const $=id=>document.getElementById(id);
   const badge=$('phaseBadge'), countdown=$('countdown'), instruction=$('instruction'), roundText=$('roundText'), topRound=$('topRound'), bar=$('bar'), startBtn=$('startBtn'), resetBtn=$('resetBtn'), status=$('status');
-  const durationValue=$('durationValue'), minusBtn=$('minusBtn'), plusBtn=$('plusBtn'), voiceToggle=$('voiceToggle');
+  const durationValue=$('durationValue'), minusBtn=$('minusBtn'), plusBtn=$('plusBtn'), voiceToggle=$('voiceToggle'), audio=$('trainingAudio');
 
   let duration=clamp(Number(localStorage.getItem('kegel-duration'))||6,MIN_SECS,MAX_SECS);
   let voiceEnabled=localStorage.getItem('kegel-voice')!=='off';
-  let running=false, finished=false, segmentStartPerf=0, startSlot=0, currentSlot=0, rafId=0;
-  let selectedVoice=null, voicesReady=false, lastSpokenSlot=-1;
+  let running=false, finished=false, rafId=0, lastPhase='';
 
   function clamp(n,min,max){return Math.max(min,Math.min(max,n));}
-  function totalSlots(){return ROUNDS*2*duration;}
-  function slotInfo(slot){
-    const phaseIndex=Math.floor(slot/duration), secInPhase=slot%duration;
-    const phase=phaseIndex%2===0?'contract':'relax';
-    return {phase,round:Math.floor(phaseIndex/2)+1,remaining:duration-secInPhase,phaseIndex,secInPhase};
-  }
-  function vibrate(pattern){if(navigator.vibrate)navigator.vibrate(pattern);}
+  function stageSeconds(){return duration+1;}
+  function totalSeconds(){return ROUNDS*2*stageSeconds();}
+  function sourceForDuration(){return `./audio/training-${duration}.mp3`;}
   function setRoundText(text){roundText.textContent=text;topRound.textContent=text;}
+  function vibrate(pattern){if(navigator.vibrate)navigator.vibrate(pattern);}
 
   function updateSettingsUI(){
     durationValue.textContent=duration;
-    minusBtn.disabled=duration<=MIN_SECS||running;plusBtn.disabled=duration>=MAX_SECS||running;voiceToggle.checked=voiceEnabled;
+    minusBtn.disabled=duration<=MIN_SECS||running;
+    plusBtn.disabled=duration>=MAX_SECS||running;
+    voiceToggle.checked=voiceEnabled;
   }
-  function setDuration(value){if(running)return;duration=clamp(Number(value),MIN_SECS,MAX_SECS);localStorage.setItem('kegel-duration',String(duration));reset(false);}
-  function setVoice(value){voiceEnabled=Boolean(value);localStorage.setItem('kegel-voice',voiceEnabled?'on':'off');if(!voiceEnabled)stopVoice();updateSettingsUI();}
+  function configureAudio(force=false){
+    const wanted=new URL(sourceForDuration(),location.href).href;
+    if(force || audio.src!==wanted){audio.src=sourceForDuration();audio.load();}
+    audio.muted=!voiceEnabled;
+    audio.volume=0.92;
+  }
+  function setDuration(value){
+    if(running)return;
+    duration=clamp(Number(value),MIN_SECS,MAX_SECS);
+    localStorage.setItem('kegel-duration',String(duration));
+    configureAudio(true);reset(false);
+  }
+  function setVoice(value){
+    voiceEnabled=Boolean(value);
+    localStorage.setItem('kegel-voice',voiceEnabled?'on':'off');
+    audio.muted=!voiceEnabled;
+    updateSettingsUI();
+  }
 
-  function renderSlot(slot){
-    const i=slotInfo(Math.min(slot,totalSlots()-1));
+  function infoAtTime(t){
+    const slot=Math.min(Math.floor(Math.max(0,t)),totalSeconds()-1);
+    const stageLen=stageSeconds();
+    const phaseIndex=Math.floor(slot/stageLen), secInStage=slot%stageLen;
+    const phase=phaseIndex%2===0?'contract':'relax';
+    const cue=secInStage===0;
+    const remaining=cue?null:duration-(secInStage-1);
+    return {slot, phase, round:Math.floor(phaseIndex/2)+1, remaining, phaseIndex, secInStage, cue};
+  }
+  function renderFromAudio(){
+    const t=Math.min(audio.currentTime,totalSeconds());
+    if(t>=totalSeconds()-0.02 && audio.ended){finish();return;}
+    const i=infoAtTime(t);
     setRoundText(`第 ${Math.min(i.round,ROUNDS)} / ${ROUNDS} 轮`);
-    countdown.textContent=i.remaining;
+    countdown.textContent=i.cue?'—':i.remaining;
     badge.textContent=i.phase==='contract'?'收缩':'放松';
-    instruction.textContent=i.phase==='contract'?'向内、向上提起盆底肌':'慢慢释放，完全放松';
-    bar.style.width=(Math.min(slot,totalSlots())/totalSlots()*100)+'%';
+    instruction.textContent=i.cue?(i.phase==='contract'?'听到提示后开始收缩':'听到提示后完全放松'):(i.phase==='contract'?'保持收缩，正常呼吸':'保持放松，正常呼吸');
+    bar.style.width=(Math.min(t,totalSeconds())/totalSeconds()*100)+'%';
+    if(lastPhase && lastPhase!==i.phase)vibrate(i.phase==='contract'?[80,60,80]:120);
+    lastPhase=i.phase;
   }
-  function renderReady(){setRoundText('第 1 / 10 轮');countdown.textContent=duration;badge.textContent='准备';instruction.textContent='点击开始';bar.style.width='0%';}
+  function renderReady(){setRoundText('第 1 / 10 轮');countdown.textContent=duration;badge.textContent='准备';instruction.textContent='点击开始';bar.style.width='0%';lastPhase='';}
   function renderDone(){setRoundText('10 / 10 轮');countdown.textContent='✓';badge.textContent='完成';instruction.textContent='今天的 10 轮完成';bar.style.width='100%';}
+  function frame(){if(!running)return;renderFromAudio();rafId=requestAnimationFrame(frame);}
 
-  function chooseSoftChineseVoice(){
-    if(!('speechSynthesis' in window))return null;
-    const voices=speechSynthesis.getVoices();
-    const zh=voices.filter(v=>/^zh([-_]|$)/i.test(v.lang)||/Chinese|Mandarin|中文|普通话/i.test(v.name));
-    const preferred=[
-      /Ting[- ]?Ting/i,/Meijia/i,/Xiaoxiao/i,/Xiaoyi/i,/HsiaoChen/i,/Sinji/i,/female/i,/女/i
-    ];
-    for(const re of preferred){const v=zh.find(x=>re.test(x.name));if(v)return v;}
-    return zh[0]||null;
-  }
-  function prepareVoice(){
-    if(!voiceEnabled)return;
-    if(!('speechSynthesis' in window)){status.textContent='此设备不支持系统语音，将仅使用精确数字计时。';return;}
-    selectedVoice=chooseSoftChineseVoice();voicesReady=true;
-  }
-  let voiceBusy=false;
-  let activeUtterance=null;
-  function speakNow(text){
-    if(!voiceEnabled||!('speechSynthesis' in window)||voiceBusy)return false;
-    const u=new SpeechSynthesisUtterance(text);
-    u.lang='zh-CN';
-    u.rate=0.92;
-    u.pitch=1.02;
-    u.volume=0.82;
-    if(selectedVoice)u.voice=selectedVoice;
-    voiceBusy=true;
-    activeUtterance=u;
-    const release=()=>{if(activeUtterance===u){voiceBusy=false;activeUtterance=null;}};
-    u.onend=release;
-    u.onerror=release;
-    speechSynthesis.speak(u);
-    return true;
-  }
-  function stopVoice(){
-    if('speechSynthesis' in window)speechSynthesis.cancel();
-    voiceBusy=false;activeUtterance=null;lastSpokenSlot=-1;
-  }
-  function announceSlot(slot){
-    if(!voiceEnabled||slot===lastSpokenSlot)return;
-    const info=slotInfo(slot);
-    const text=info.secInPhase===0
-      ? `${info.phase==='contract'?'收缩':'放松'}，${info.remaining}`
-      : String(info.remaining);
-    // 不打断正在播报的声音，也不排队补播已经过期的数字。
-    // 这样每个已开始的数字都能自然说完，同时视觉计时始终按真实 1 秒推进。
-    if(speakNow(text))lastSpokenSlot=slot;
-  }
-  function frame(){
-    if(!running)return;const now=performance.now();if(now<segmentStartPerf){rafId=requestAnimationFrame(frame);return;}
-    const elapsed=Math.floor((now-segmentStartPerf)/1000),slot=startSlot+elapsed;if(slot>=totalSlots()){finish();return;}
-    if(slot!==currentSlot){const prev=slotInfo(currentSlot),next=slotInfo(slot);currentSlot=slot;renderSlot(currentSlot);announceSlot(currentSlot);if(prev.phase!==next.phase)vibrate(next.phase==='contract'?[80,60,80]:120);}rafId=requestAnimationFrame(frame);
-  }
   async function startOrPause(){
-    if(finished)reset(false);if(running){running=false;cancelAnimationFrame(rafId);stopVoice();startBtn.textContent='继续';instruction.textContent='已暂停';status.textContent='';updateSettingsUI();return;}
-    startBtn.disabled=true;prepareVoice();startBtn.disabled=false;running=true;finished=false;startBtn.textContent='暂停';updateSettingsUI();startSlot=currentSlot;segmentStartPerf=performance.now()+LEAD_MS;renderSlot(currentSlot);status.textContent='';lastSpokenSlot=-1;setTimeout(()=>{if(running&&currentSlot===startSlot)announceSlot(currentSlot)},LEAD_MS);rafId=requestAnimationFrame(frame);
+    if(finished)reset(false);
+    if(running){
+      audio.pause();running=false;cancelAnimationFrame(rafId);startBtn.textContent='继续';instruction.textContent='已暂停';status.textContent='';updateSettingsUI();return;
+    }
+    configureAudio(false);
+    try{
+      await audio.play();
+      running=true;finished=false;startBtn.textContent='暂停';status.textContent='';updateSettingsUI();renderFromAudio();rafId=requestAnimationFrame(frame);
+    }catch(err){
+      running=false;status.textContent='无法开始播放，请再次点击开始。';updateSettingsUI();
+    }
   }
-  function finish(){running=false;finished=true;cancelAnimationFrame(rafId);stopVoice();currentSlot=totalSlots();startBtn.textContent='重新开始';renderDone();updateSettingsUI();vibrate([150,80,150]);}
-  function reset(update=true){running=false;finished=false;cancelAnimationFrame(rafId);stopVoice();currentSlot=0;startSlot=0;startBtn.textContent='开始';status.textContent='';renderReady();updateSettingsUI();}
+  function finish(){
+    if(finished)return;
+    running=false;finished=true;cancelAnimationFrame(rafId);startBtn.textContent='重新开始';renderDone();updateSettingsUI();vibrate([150,80,150]);
+  }
+  function reset(update=true){
+    running=false;finished=false;cancelAnimationFrame(rafId);audio.pause();try{audio.currentTime=0;}catch(e){}startBtn.textContent='开始';status.textContent='';renderReady();updateSettingsUI();
+  }
 
-  minusBtn.addEventListener('click',()=>setDuration(duration-1));plusBtn.addEventListener('click',()=>setDuration(duration+1));voiceToggle.addEventListener('change',e=>setVoice(e.target.checked));startBtn.addEventListener('click',startOrPause);resetBtn.addEventListener('click',()=>reset());
-  updateSettingsUI();renderReady();prepareVoice();if('speechSynthesis' in window)speechSynthesis.addEventListener?.('voiceschanged',prepareVoice);if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js');
+  audio.addEventListener('ended',finish);
+  audio.addEventListener('play',()=>{if(!running){running=true;startBtn.textContent='暂停';updateSettingsUI();rafId=requestAnimationFrame(frame);}});
+  audio.addEventListener('pause',()=>{if(!finished && audio.currentTime>0 && audio.currentTime<totalSeconds()){running=false;cancelAnimationFrame(rafId);startBtn.textContent='继续';updateSettingsUI();}});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderFromAudio();});
+
+  if('mediaSession' in navigator){
+    try{
+      navigator.mediaSession.metadata=new MediaMetadata({title:'凯格尔跟练',artist:'Kegel Trainer',album:'盆底肌训练'});
+      navigator.mediaSession.setActionHandler('play',()=>audio.play());
+      navigator.mediaSession.setActionHandler('pause',()=>audio.pause());
+    }catch(e){}
+  }
+
+  minusBtn.addEventListener('click',()=>setDuration(duration-1));
+  plusBtn.addEventListener('click',()=>setDuration(duration+1));
+  voiceToggle.addEventListener('change',e=>setVoice(e.target.checked));
+  startBtn.addEventListener('click',startOrPause);
+  resetBtn.addEventListener('click',()=>reset());
+  configureAudio(true);updateSettingsUI();renderReady();
+  status.textContent='连续音轨模式：先完整提示，再开始倒计时；锁屏后也会尽量继续播放';
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js');
 })();
 </script>
 </body>
